@@ -954,8 +954,6 @@ app.mainloop()
             title: "🎨 Seção 6: O Toque Pessoal – Widgets Avançados e Personalização",
             html: `
                 <p>Sua aplicação merece ser única! O CustomTkinter te dá as ferramentas para personalizar cada detalhe, desde as cores até as fontes e imagens.</p>
-                <h4 class="text-xl font-medium mt-6 mb-2">🌈 Personalizando Cores e Fontes: Sua Paleta de Cores e Tipografia</h4>
-                <p>Cada widget pode ser uma tela em branco para sua criatividade!</p>
                 <ul class="list-disc list-inside space-y-1 mt-2">
                     <li><strong>Cores:</strong> Use nomes de cores (<code>"red"</code>, <code>"blue"</code>) ou os poderosos códigos hexadecimais (<code>"#FF5733"</code> - laranja vibrante!).</li>
                     <li><strong>Fontes:</strong> Com <code>customtkinter.CTkFont()</code>, você controla o tipo, tamanho, peso (negrito), inclinação (itálico) e muito mais!</li>
@@ -1720,8 +1718,13 @@ if __name__ == "__main__":
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
             const payload = { contents: chatHistory };
-            const apiKey = ""; // Canvas will provide this at runtime
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            // A chave de API não é mais usada aqui, pois a chamada é para o seu backend
+            // const apiKey = ""; // Canvas will provide this at runtime
+            // const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            // >>>>>>>>>>>>> ALTERAÇÃO AQUI: APONTANDO PARA O SEU BACKEND LOCAL <<<<<<<<<<<<<
+            const apiUrl = 'http://127.0.0.1:5000/ask_gemini'; // Seu servidor Flask local
+            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             try {
                 const response = await fetch(apiUrl, {
@@ -1732,10 +1735,8 @@ if __name__ == "__main__":
 
                 const result = await response.json();
 
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
+                if (result.response) { // O backend agora retorna { 'response': 'texto_do_gemini' }
+                    const text = result.response;
                     
                     if (isCodeGeneration) {
                         outputElement.querySelector('code').textContent = text;
@@ -1744,13 +1745,17 @@ if __name__ == "__main__":
                         outputElement.innerHTML = text.replace(/\n/g, '<br>');
                         outputElement.classList.remove('hidden');
                     }
+                } else if (result.error) {
+                    errorElement.textContent = `Erro do Backend: ${result.error}`;
+                    errorElement.classList.remove('hidden');
+                    console.error('Backend error:', result.error);
                 } else {
-                    errorElement.textContent = 'Erro ao obter resposta do Gemini. Tente novamente.';
+                    errorElement.textContent = 'Erro ao obter resposta do Gemini. Estrutura inesperada.';
                     errorElement.classList.remove('hidden');
                     console.error('Unexpected Gemini API response structure:', result);
                 }
             } catch (e) {
-                errorElement.textContent = `Erro na comunicação com a API: ${e.message}`;
+                errorElement.textContent = `Erro na comunicação com o servidor: ${e.message}`;
                 errorElement.classList.remove('hidden');
                 console.error('Fetch error:', e);
             } finally {
